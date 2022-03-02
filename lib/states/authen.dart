@@ -18,19 +18,60 @@ class _AuthenState extends State<Authen> {
     double size = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          children: [
-            buildImage(size),
-            buildAppName(),
-            buildUser(size),
-            buildPassword(size),
-          ],
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).requestFocus(
+            FocusNode(),
+          ),
+          behavior: HitTestBehavior.opaque,
+          child: ListView(
+            children: [
+              buildImage(size),
+              buildAppName(),
+              buildUserID(size),
+              buildPassword(size),
+              buildLogin(size),
+              buildCreateAccount(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Row buildUser(double size) {
+  Row buildCreateAccount() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ShowTitle(
+          title: 'NON HAVE AN ACCOUNT?',
+          textStyle: AppConstant().h3Style(),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pushNamed(context, AppConstant.routeCreateAccount),
+          child: Text('SIGN UP'),
+        ),
+      ],
+    );
+  }
+
+  Row buildLogin(double size) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+            margin: EdgeInsets.symmetric(vertical: 16),
+            width: size * 0.6,
+            child: ElevatedButton(
+              style: AppConstant().myButtonStyle(),
+              onPressed: () {},
+              child: Text('Login'),
+            )),
+      ],
+    );
+  }
+
+  Row buildUserID(double size) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -40,7 +81,7 @@ class _AuthenState extends State<Authen> {
           child: TextFormField(
             decoration: InputDecoration(
               labelStyle: AppConstant().h3Style(),
-              labelText: 'User :',
+              labelText: 'User ID',
               prefixIcon: Icon(
                 Icons.account_circle_outlined,
                 color: AppConstant.dark,
@@ -70,8 +111,24 @@ class _AuthenState extends State<Authen> {
           child: TextFormField(
             obscureText: statusRedEye,
             decoration: InputDecoration(
+              suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    statusRedEye = !statusRedEye;
+                  });
+                },
+                icon: statusRedEye
+                    ? Icon(
+                        Icons.remove_red_eye,
+                        color: AppConstant.dark,
+                      )
+                    : Icon(
+                        Icons.remove_red_eye_outlined,
+                        color: AppConstant.dark,
+                      ),
+              ),
               labelStyle: AppConstant().h3Style(),
-              labelText: 'Password :',
+              labelText: 'Password',
               prefixIcon: Icon(
                 Icons.lock_outlined,
                 color: AppConstant.dark,

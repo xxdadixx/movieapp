@@ -16,9 +16,9 @@ class AppConstant {
   static String image4 = 'assets/images/image4.png';
 
   //Color
-  static Color primary = Color(0xffce93d8);
-  static Color dark = Color(0xff9c64a6);
-  static Color light = Color(0xffffc4ff);
+  static Color primary = Color(0xffba68c8);
+  static Color dark = Color(0xff883997);
+  static Color light = Color(0xffee98fb);
 
   //Style
   TextStyle h1Style() => TextStyle(
@@ -35,5 +35,12 @@ class AppConstant {
         fontSize: 14,
         color: dark,
         fontWeight: FontWeight.normal,
+      );
+
+  ButtonStyle myButtonStyle() => ElevatedButton.styleFrom(
+        primary: AppConstant.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
       );
 }
