@@ -11,6 +11,8 @@ class Authen extends StatefulWidget {
 }
 
 class _AuthenState extends State<Authen> {
+  bool statusRedEye = true;
+
   @override
   Widget build(BuildContext context) {
     double size = MediaQuery.of(context).size.width;
@@ -20,9 +22,72 @@ class _AuthenState extends State<Authen> {
           children: [
             buildImage(size),
             buildAppName(),
+            buildUser(size),
+            buildPassword(size),
           ],
         ),
       ),
+    );
+  }
+
+  Row buildUser(double size) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 16),
+          width: size * 0.6,
+          child: TextFormField(
+            decoration: InputDecoration(
+              labelStyle: AppConstant().h3Style(),
+              labelText: 'User :',
+              prefixIcon: Icon(
+                Icons.account_circle_outlined,
+                color: AppConstant.dark,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: AppConstant.dark),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: AppConstant.light),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Row buildPassword(double size) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 16),
+          width: size * 0.6,
+          child: TextFormField(
+            obscureText: statusRedEye,
+            decoration: InputDecoration(
+              labelStyle: AppConstant().h3Style(),
+              labelText: 'Password :',
+              prefixIcon: Icon(
+                Icons.lock_outlined,
+                color: AppConstant.dark,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: AppConstant.dark),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: AppConstant.light),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
