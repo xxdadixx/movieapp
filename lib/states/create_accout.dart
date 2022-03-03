@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:movie_app/utility/app_constant.dart';
+import 'package:movie_app/widgets/show_image.dart';
 import 'package:movie_app/widgets/show_title.dart';
 
 class CreateAccount extends StatefulWidget {
@@ -11,6 +15,7 @@ class CreateAccount extends StatefulWidget {
 
 class _CreateaAccountState extends State<CreateAccount> {
   bool statusRedEye = true;
+  File? file;
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +35,11 @@ class _CreateaAccountState extends State<CreateAccount> {
             buildName(size),
             buildEmail(size),
             buildTitle('Basic information'),
-            buildAddress(size),
-            buildPhonenumber(size),
+            buildAvatar(size),
             buildUserID(size),
             buildPassword(size),
+            buildPhonenumber(size),
+            buildAddress(size),
           ],
         ),
       ),
@@ -82,7 +88,7 @@ class _CreateaAccountState extends State<CreateAccount> {
               labelStyle: AppConstant().h3Style(),
               labelText: 'Enter your email',
               prefixIcon: Icon(
-                Icons.email_outlined,
+                Icons.mail_outline,
                 color: AppConstant.dark,
               ),
               enabledBorder: OutlineInputBorder(
@@ -221,7 +227,7 @@ class _CreateaAccountState extends State<CreateAccount> {
                       ),
               ),
               labelStyle: AppConstant().h3Style(),
-              labelText: 'Password',
+              labelText: 'Enter your password',
               prefixIcon: Icon(
                 Icons.lock_outlined,
                 color: AppConstant.dark,
@@ -236,6 +242,42 @@ class _CreateaAccountState extends State<CreateAccount> {
               ),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Future<Null> chooseImage(ImageSource source) async {
+    try {
+      var result = await ImagePicker()
+          .getImage(source: source, maxWidth: 800, maxHeight: 800);
+      setState(() {
+        file = File(result!.path);
+      });
+    } catch (e) {}
+  }
+
+  Row buildAvatar(double size) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        IconButton(
+          onPressed: () => chooseImage(ImageSource.camera),
+          icon: Icon(Icons.add_a_photo),
+          color: AppConstant.dark,
+        ),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 16),
+          width: size * 0.6,
+          child: file == null
+              ? ShowImage(path: AppConstant.avatar)
+              : Image.file(file!),
+        ),
+        IconButton(
+          onPressed: () => chooseImage(ImageSource.gallery),
+          icon: Icon(Icons.add_photo_alternate),
+          color: AppConstant.dark,
         ),
       ],
     );
