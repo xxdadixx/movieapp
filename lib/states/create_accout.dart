@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,8 +9,8 @@ import 'package:movie_app/utility/app_dialog.dart';
 import 'package:movie_app/widgets/show_image.dart';
 import 'package:movie_app/widgets/show_progress.dart';
 import 'package:movie_app/widgets/show_title.dart';
-import 'package:http/http.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:dio/dio.dart';
 
 class CreateAccount extends StatefulWidget {
   const CreateAccount({Key? key}) : super(key: key);
@@ -20,9 +21,16 @@ class CreateAccount extends StatefulWidget {
 
 class _CreateaAccountState extends State<CreateAccount> {
   bool statusRedEye = true;
+  String avatar = '';
   File? file;
   double? lat, lng;
   final formKey = GlobalKey<FormState>();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController userController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
 
   @override
   void initState() {
@@ -71,7 +79,13 @@ class _CreateaAccountState extends State<CreateAccount> {
   IconButton buildCreateNewAccount() {
     return IconButton(
       onPressed: () {
-        if (formKey.currentState!.validate()) {}
+        if (formKey.currentState!.validate()) {
+          if (buildName == null) {
+          } else {
+            print('Process Insert to Database');
+            uploadPictureAndInsertData();
+          }
+        }
       },
       icon: Icon(Icons.cloud_upload),
     );
@@ -85,6 +99,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: nameController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter your name';
@@ -120,6 +135,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: emailController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter your email';
@@ -155,6 +171,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: addressController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter your address';
@@ -194,6 +211,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: phoneController,
             keyboardType: TextInputType.phone,
             validator: (value) {
               if (value!.isEmpty) {
@@ -230,6 +248,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: userController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter your user id';
@@ -265,6 +284,7 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            controller: passwordController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'Please enter your password';
@@ -359,6 +379,85 @@ class _CreateaAccountState extends State<CreateAccount> {
                 markers: setMarker(),
               ),
       );
+
+  Future<Null> uploadPictureAndInsertData() async {
+    String email = emailController.text;
+    String name = nameController.text;
+    String address = addressController.text;
+    String phone = phoneController.text;
+    String user = userController.text;
+    String password = passwordController.text;
+    print(
+        '## name = $name, email = $email, address = $address, phone = $phone, user = $user, password = $password');
+    String path =
+        '${AppConstant.domain}/movieapp/getUserWhereUser.php?isAdd=true&user=$user';
+    await Dio().get(path).then((value) async {
+      print('## value = $value');
+      if (value.toString() == 'null') {
+        print('## user OK');
+
+        if (file == null) {
+          //no picture
+          processInsertMySQL(
+            email: email,
+            name: name,
+            address: address,
+            phone: phone,
+            user: user,
+            password: password,
+          );
+        } else {
+          //have picture
+          print('## process upload');
+          String apiSaveAvatar =
+              '${AppConstant.domain}/movieapp/saveAvatar.php';
+          int i = Random().nextInt(100000);
+          String nameAvatar = 'avatar$i.jpg';
+          Map<String, dynamic> map = Map();
+          map['file'] =
+              await MultipartFile.fromFile(file!.path, filename: nameAvatar);
+          FormData data = FormData.fromMap(
+            map,
+          );
+          await Dio().post(apiSaveAvatar, data: data).then((value) {
+            avatar = '/movieapp/avatar/$nameAvatar';
+            processInsertMySQL(
+              email: email,
+              name: name,
+              address: address,
+              phone: phone,
+              user: user,
+              password: password,
+            );
+          });
+        }
+      } else {
+        AppDiaLog()
+            .normalDialog(context, 'User False?', 'Please use another user id');
+      }
+    });
+  }
+
+  Future<Null> processInsertMySQL(
+      {String? email,
+      String? name,
+      String? address,
+      String? phone,
+      String? user,
+      String? password}) async {
+    print('## process work and avatar = $avatar');
+    String apiInsertUser =
+        '${AppConstant.domain}/movieapp/insertUser.php?isAdd=true&name=$name&email=$email&avatar=$avatar&user=$user&password=$password&phone=$phone&address=$address&lat=$lat&lng=$lng';
+    await Dio().get(apiInsertUser).then((value) => {
+          if (value.toString() == 'true')
+            {Navigator.pop(context)}
+          else
+            {
+              AppDiaLog().normalDialog(
+                  context, 'Create new user false', 'Please try again')
+            }
+        });
+  }
 
   Future<Null> findLatLng() async {
     print('findLatLan ==> Work');

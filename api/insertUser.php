@@ -24,12 +24,12 @@ if (isset($_GET)) {
 		$user = $_GET['user'];
 		$password = $_GET['password'];
 		$phone = $_GET['phone'];
-		$address = $_GET['adress'];
+		$address = $_GET['address'];
 		$lat = $_GET['lat'];
 		$lng = $_GET['lng'];
 		
 							
-		$sql = "INSERT INTO `user`(`id`, `name`, `email`, `avatar`, `user`, `password`, `phone`, `address`, `lat`, `lng`) VALUES (Null,'$name','$email','$avatar','$user','$password','$phone','$address','$lat','$lng');
+		$sql = "INSERT INTO `user`(`id`, `name`, `email`, `avatar`, `user`, `password`, `phone`, `address`, `lat`, `lng`) VALUES (Null,'$name','$email','$avatar','$user','$password','$phone','$address','$lat','$lng')";
 
 		$result = mysqli_query($link, $sql);
 
@@ -39,7 +39,7 @@ if (isset($_GET)) {
 			echo "false";
 		}
 
-	} else echo "Welcome Master UNG";
+	} else echo "Welcome in your movieapp";
    
 }
 	mysqli_close($link);
