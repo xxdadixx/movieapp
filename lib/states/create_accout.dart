@@ -1,10 +1,14 @@
+import 'dart:ffi';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:movie_app/utility/app_constant.dart';
+import 'package:movie_app/utility/app_dialog.dart';
 import 'package:movie_app/widgets/show_image.dart';
+import 'package:movie_app/widgets/show_progress.dart';
 import 'package:movie_app/widgets/show_title.dart';
+import 'package:http/http.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CreateAccount extends StatefulWidget {
   const CreateAccount({Key? key}) : super(key: key);
@@ -15,7 +19,15 @@ class CreateAccount extends StatefulWidget {
 
 class _CreateaAccountState extends State<CreateAccount> {
   bool statusRedEye = true;
+  String? typeUser;
   File? file;
+  double? lat, lng;
+
+  @override
+  void initState() {
+    super.initState();
+    checkPermission();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +52,8 @@ class _CreateaAccountState extends State<CreateAccount> {
             buildPassword(size),
             buildPhonenumber(size),
             buildAddress(size),
+            buildTitle('Show your location coordinates'),
+            buildMap(),
           ],
         ),
       ),
@@ -247,16 +261,6 @@ class _CreateaAccountState extends State<CreateAccount> {
     );
   }
 
-  Future<Null> chooseImage(ImageSource source) async {
-    try {
-      var result = await ImagePicker()
-          .getImage(source: source, maxWidth: 800, maxHeight: 800);
-      setState(() {
-        file = File(result!.path);
-      });
-    } catch (e) {}
-  }
-
   Row buildAvatar(double size) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -281,6 +285,80 @@ class _CreateaAccountState extends State<CreateAccount> {
         ),
       ],
     );
+  }
+
+  Widget buildMap() => Container(
+        width: double.infinity,
+        height: 200,
+        child: lat == null ? ShowProgress() : Text('Lat = $lat, Lng= $lng'),
+      );
+
+  Future<Null> findLatLng() async {
+    print('findLatLan ==> Work');
+    Position? position = await findPosition();
+    setState(() {
+      lat = position!.latitude;
+      lng = position.longitude;
+      print('lat = $lat, lng=$lng');
+    });
+  }
+
+  Future<Position?> findPosition() async {
+    Position position;
+    try {
+      position = await Geolocator.getCurrentPosition();
+      return position;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Null> chooseImage(ImageSource source) async {
+    try {
+      var result = await ImagePicker()
+          .getImage(source: source, maxWidth: 800, maxHeight: 800);
+      setState(() {
+        file = File(result!.path);
+      });
+    } catch (e) {}
+  }
+
+  Future<Null> checkPermission() async {
+    bool locationService;
+    LocationPermission locationPermission;
+
+    locationService = await Geolocator.isLocationServiceEnabled();
+    if (locationService) {
+      print('Service Location Open');
+
+      locationPermission = await Geolocator.checkPermission();
+      if (locationPermission == LocationPermission.denied) {
+        locationPermission = await Geolocator.requestPermission();
+        if (locationPermission == LocationPermission.deniedForever) {
+          AppDiaLog().alertLocationService(
+              context,
+              'Location sharing is not allowed',
+              'Please turn on location service');
+        } else {
+          ///
+          findLatLng();
+        }
+      } else {
+        if (locationPermission == LocationPermission.deniedForever) {
+          AppDiaLog().alertLocationService(
+              context,
+              'Location sharing is not allowed',
+              'Please turn on location service');
+        } else {
+          ///
+          findLatLng();
+        }
+      }
+    } else {
+      print('Service Location Close');
+      AppDiaLog().alertLocationService(context, 'Location service is close',
+          'Please turn on location service');
+    }
   }
 
   Container buildTitle(String title) {
