@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:movie_app/utility/app_constant.dart';
 import 'package:movie_app/utility/app_dialog.dart';
@@ -19,9 +20,9 @@ class CreateAccount extends StatefulWidget {
 
 class _CreateaAccountState extends State<CreateAccount> {
   bool statusRedEye = true;
-  String? typeUser;
   File? file;
   double? lat, lng;
+  final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -34,29 +35,45 @@ class _CreateaAccountState extends State<CreateAccount> {
     double size = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          buildCreateNewAccount(),
+        ],
         title: Text('Sign Up'),
         backgroundColor: AppConstant.primary,
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
         behavior: HitTestBehavior.opaque,
-        child: ListView(
-          padding: EdgeInsets.all(16),
-          children: [
-            buildTitle('General Information'),
-            buildName(size),
-            buildEmail(size),
-            buildTitle('Basic information'),
-            buildAvatar(size),
-            buildUserID(size),
-            buildPassword(size),
-            buildPhonenumber(size),
-            buildAddress(size),
-            buildTitle('Show your location coordinates'),
-            buildMap(),
-          ],
+        child: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                buildTitle('General Information'),
+                buildName(size),
+                buildEmail(size),
+                buildTitle('Basic information'),
+                buildAvatar(size),
+                buildUserID(size),
+                buildPassword(size),
+                buildPhonenumber(size),
+                buildAddress(size),
+                buildTitle('Show your location coordinates'),
+                buildMap(),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  IconButton buildCreateNewAccount() {
+    return IconButton(
+      onPressed: () {
+        if (formKey.currentState!.validate()) {}
+      },
+      icon: Icon(Icons.cloud_upload),
     );
   }
 
@@ -68,6 +85,11 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your name';
+              } else {}
+            },
             decoration: InputDecoration(
               labelStyle: AppConstant().h3Style(),
               labelText: 'Enter your name and lastname',
@@ -98,6 +120,11 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your email';
+              } else {}
+            },
             decoration: InputDecoration(
               labelStyle: AppConstant().h3Style(),
               labelText: 'Enter your email',
@@ -128,6 +155,11 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your address';
+              } else {}
+            },
             maxLines: 2,
             decoration: InputDecoration(
               hintText: 'Enter you address',
@@ -162,6 +194,12 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            keyboardType: TextInputType.phone,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your phone number';
+              } else {}
+            },
             decoration: InputDecoration(
               labelStyle: AppConstant().h3Style(),
               labelText: 'Enter your phone number',
@@ -192,6 +230,11 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your user id';
+              } else {}
+            },
             decoration: InputDecoration(
               labelStyle: AppConstant().h3Style(),
               labelText: 'Enter your user id',
@@ -222,6 +265,11 @@ class _CreateaAccountState extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.8,
           child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your password';
+              } else {}
+            },
             obscureText: statusRedEye,
             decoration: InputDecoration(
               suffixIcon: IconButton(
@@ -287,10 +335,29 @@ class _CreateaAccountState extends State<CreateAccount> {
     );
   }
 
+  Set<Marker> setMarker() => <Marker>[
+        Marker(
+          markerId: MarkerId('id'),
+          position: LatLng(lat!, lng!),
+          infoWindow: InfoWindow(
+              title: 'Your current location',
+              snippet: 'Lat = $lat, lng = $lng'),
+        ),
+      ].toSet();
+
   Widget buildMap() => Container(
         width: double.infinity,
-        height: 200,
-        child: lat == null ? ShowProgress() : Text('Lat = $lat, Lng= $lng'),
+        height: 300,
+        child: lat == null
+            ? ShowProgress()
+            : GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(lat!, lng!),
+                  zoom: 16,
+                ),
+                onMapCreated: (contrller) {},
+                markers: setMarker(),
+              ),
       );
 
   Future<Null> findLatLng() async {
